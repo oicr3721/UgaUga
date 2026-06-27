@@ -17,21 +17,32 @@ public class Character : MonoBehaviour
     public Animator Animator => animator;
 
     private Vector2 moveInput;
+    private bool canMove = true;
+
     protected void Update()
     {
+        Tick();
+
+        if (!canMove || moveInput == Vector2.zero)
+            return;
+
         Vector3 move =
             (Vector3)moveInput *
             moveSpeed *
             Time.deltaTime;
 
         transform.position += move;
-
-        Tick();
     }
 
     Vector2 prevInput;
     public void SetMoveInput(Vector2 input)
     {
+        if (!canMove)
+        {
+            moveInput = Vector2.zero;
+            return;
+        }
+
         moveInput = input;
 
         animator.SetBool(
@@ -56,4 +67,17 @@ public class Character : MonoBehaviour
     }
 
     protected virtual void Tick() { }
+    protected virtual void StopMove()
+    {
+        moveInput = Vector2.zero;
+        animator.SetBool("Moving", false);
+    }
+
+    protected virtual void SetCanMove(bool value)
+    {
+        canMove = value;
+
+        if (!canMove)
+            StopMove();
+    }
 }

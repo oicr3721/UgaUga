@@ -26,6 +26,7 @@ public class Rope : MonoBehaviour
     [Header("Rope")]
     [SerializeField] private float releaseForce = 0.5f;
     [SerializeField] private float pullForce = 1.2f;
+    [SerializeField] private float loosenLength = 0.02f;
 
     private float noTensionTimer;
 
@@ -177,6 +178,11 @@ public class Rope : MonoBehaviour
         target?.OnRopePulled(-dir * CurrentTension * pullForce);
     }
 
+    public void Loosen()
+    {
+        SetRopeLength(ropeLength + (loosenLength * Time.deltaTime));
+    }
+
     private void SetRopeLength(float newLength)
     {
         ropeLength = Mathf.Max(0.01f, newLength);
@@ -218,6 +224,8 @@ public class Rope : MonoBehaviour
         ApplyRopeForces();
 
         UpdateDurability();
+
+        Loosen();
     }
 
     private void Simulate()

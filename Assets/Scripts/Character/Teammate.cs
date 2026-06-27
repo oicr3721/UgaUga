@@ -11,6 +11,11 @@ public abstract class Teammate : Character
     [SerializeField] protected float attackWindup = 0.25f;   // AttackReady 유지 시간
     [SerializeField] protected float attackCooldown = 0.5f;  // 공격 종료 후 다음 행동까지 대기
 
+    [Header("Offset")]
+    [SerializeField] protected Vector2 windupOffset = Vector2.zero;
+    [SerializeField] protected Vector2 cooldownOffset = Vector2.zero;
+    [SerializeField] protected Vector2 attackRangeOffset = Vector2.zero;
+
     protected Transform currentTarget;
 
     protected bool isAttackReady;
@@ -19,7 +24,14 @@ public abstract class Teammate : Character
 
     protected Coroutine attackRoutine;
 
-    public float AttackRange => attackRange;
+    public float AttackRange
+    {
+        get
+        {
+            float actualRange = attackRange + Random.Range(attackRangeOffset.x, attackRangeOffset.y);
+            return actualRange;
+        }
+    }
     public bool IsAttackReady => isAttackReady;
     public bool IsAttacking => isAttacking;
     public bool IsBusy => isAttackReady || isAttacking;
@@ -55,7 +67,9 @@ public abstract class Teammate : Character
         EnterAttackReady();
 
         float elapsed = 0f;
-        while (elapsed < attackWindup)
+        float actualWindup = attackWindup + Random.Range(windupOffset.x, windupOffset.y);
+
+        while (elapsed < actualWindup)
         {
             // Ready 중에는 이동 금지
             SetMoveInput(Vector2.zero);
@@ -111,7 +125,9 @@ public abstract class Teammate : Character
     protected virtual IEnumerator CoCooldown()
     {
         isCooldown = true;
-        yield return new WaitForSeconds(attackCooldown);
+        float actualCooldown = attackCooldown + Random.Range(cooldownOffset.x, cooldownOffset.y);
+
+        yield return new WaitForSeconds(actualCooldown);
         isCooldown = false;
         attackRoutine = null;
     }

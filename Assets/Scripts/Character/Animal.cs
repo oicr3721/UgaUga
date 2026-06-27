@@ -4,6 +4,7 @@ public class Animal : Character, IRopeCatchable, IDamageable
 {
     [Header("Component")]
     [SerializeField] private Rigidbody2D rigidBody;
+    [SerializeField] private DamageFlash damageFlash;
 
     [Header("Stat")]
     [SerializeField] private ObservableValue hp;
@@ -12,8 +13,6 @@ public class Animal : Character, IRopeCatchable, IDamageable
     [Header("Rope Catchable")]
     [SerializeField] private Transform attachPoint;
     [SerializeField] private float ropeWeight = 3f;
-    [SerializeField] private float pulledDamage = 1f;
-    [SerializeField] private float pulledPower = 2f;
 
     public Transform AttachPoint => attachPoint;
     public float RopeWeight => ropeWeight;
@@ -34,13 +33,9 @@ public class Animal : Character, IRopeCatchable, IDamageable
         rigidBody.AddForce(force);
     }
 
-    public void OnRopePulled(Vector2 dir)
+    public void OnRopePulled(Vector2 force)
     {
-        hp.SubtractValue(pulledDamage);
-
-        CheckDeath();
-
-        rigidBody.AddForce(pulledPower * dir);
+        rigidBody.AddForce(force);
     }
 
     public void ApplyRopeForce(Vector2 force)
@@ -56,10 +51,15 @@ public class Animal : Character, IRopeCatchable, IDamageable
             return;
 
         HuntingStageManager.Instance?.OnAnimalCaptured(this);
+
+        SetCanMove(false);
     }
 
     public void TakeDamage(float damage)
     {
         hp.SubtractValue(damage);
+        damageFlash.Play();
+
+        CheckDeath();
     }
 }

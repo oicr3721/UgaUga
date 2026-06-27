@@ -5,6 +5,7 @@ public class RangedTeammate : Teammate
     [Header("Ranged")]
     [SerializeField] private Projectile projectilePrefab;
     [SerializeField] private Transform firePoint;
+    [SerializeField] private Vector2 aimOffset = Vector2.zero;
 
     private Projectile loadedProjectile;
 
@@ -25,7 +26,6 @@ public class RangedTeammate : Teammate
         if (loadedProjectile == null)
             return;
 
-        loadedProjectile.SetTargetPosition(GetTargetPosition());
         loadedProjectile.transform.SetParent(null);
         loadedProjectile.Shoot();
         loadedProjectile = null;
@@ -55,8 +55,15 @@ public class RangedTeammate : Teammate
 
     private Vector2 GetTargetPosition()
     {
-        if (currentTarget != null)
+        if (currentTarget != null) {
+
+            Vector2 targetPosition = currentTarget.position;
+
+            float offset = Random.Range(aimOffset.x, aimOffset.y);
+            targetPosition.x += offset;
+
             return currentTarget.position;
+        }
 
         return (Vector2)firePoint.position + facingDirection;
     }
