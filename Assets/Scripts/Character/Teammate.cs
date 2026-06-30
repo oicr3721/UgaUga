@@ -36,6 +36,17 @@ public abstract class Teammate : Character
     public bool IsAttacking => isAttacking;
     public bool IsBusy => isAttackReady || isAttacking;
 
+    public void Initialize(TeammateData data)
+    {
+        attackDamage = data.attackDamage;
+        attackRange = data.attackRange;
+        attackWindup = data.attackWindup;
+        attackCooldown = data.attackCooldown;
+        windupOffset = data.windupOffset;
+        cooldownOffset = data.cooldownOffset;
+        attackRangeOffset = data.attackRangeOffset;
+    }
+
     public bool CanAttackTarget(Transform target)
     {
         if (target == null)

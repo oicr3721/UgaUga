@@ -45,17 +45,14 @@ public abstract class Projectile : MonoBehaviour
         if ((hitTargetLayer.value & (1 << col.gameObject.layer)) == 0)
             return false;
 
+        hasHit = true;
+
         if (col.TryGetComponent<IDamageable>(out var damageable))
-        {
             damageable.TakeDamage(damage);
-            hasHit = true;
 
-            if (destroyOnHit)
-                Destroy(gameObject);
+        if (destroyOnHit)
+            Destroy(gameObject);
 
-            return true;
-        }
-
-        return false;
+        return true;
     }
 }

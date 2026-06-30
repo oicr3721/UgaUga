@@ -56,6 +56,15 @@ public class Rope : MonoBehaviour
     {
         durability.SetValue(durability.MaxValue);
     }
+
+    private void OnDisable()
+    {
+        holder?.OnRopeRelease(this, Vector2.zero);
+        target?.OnRopeReleased(this, Vector2.zero);
+
+        ResetRope();
+    }
+
     #region Verlet
     public void BeginCast(IRopeHoldable holdable, Vector2 startPosition)
     {
@@ -123,7 +132,7 @@ public class Rope : MonoBehaviour
 
     public void Release()
     {
-        State = RopeState.Idle;
+       //State = RopeState.Idle;
 
         if (target == null || holder == null)
         {
@@ -151,6 +160,8 @@ public class Rope : MonoBehaviour
 
     public void ResetRope()
     {
+        State = RopeState.Idle;
+
         ropeLength = 0f;
         segmentLength = 0f;
         points.Clear();
@@ -174,7 +185,7 @@ public class Rope : MonoBehaviour
         dir.y = 0f;
         OnPullDirection?.Invoke(dir);
 
-        holder?.OnRopeReel(dir * CurrentTension * pullForce);
+        holder?.OnRopeReel(dir * CurrentTension);
         target?.OnRopePulled(-dir * CurrentTension * pullForce);
     }
 

@@ -53,6 +53,7 @@ public class Animal : Character, IRopeCatchable, IDamageable
         HuntingStageManager.Instance?.OnAnimalCaptured(this);
 
         SetCanMove(false);
+        Destroy(this);
     }
 
     public void TakeDamage(float damage)

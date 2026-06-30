@@ -8,6 +8,15 @@ public class TeammateController : MonoBehaviour
     [Header("Combat Distance")]
     [SerializeField] private float distanceTolerance = 0.8f;
 
+    private void OnDisable()
+    {
+        teammate.SetCanMove(false);
+    }
+
+    private void OnEnable()
+    {
+        teammate.SetCanMove(true);
+    }
 
     private void Update()
     {

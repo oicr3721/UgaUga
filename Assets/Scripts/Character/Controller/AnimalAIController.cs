@@ -6,6 +6,6 @@ public class AnimalAIController : MonoBehaviour
 
     private void Update()
     {
-        animal.SetMoveInput(Vector2.right);
+        animal?.SetMoveInput(Vector2.right);
     }
 }

@@ -48,4 +48,5 @@ public class RopeActionController : MonoBehaviour
 
         projectile.Launch(rope, player, dir);
     }
+
 }

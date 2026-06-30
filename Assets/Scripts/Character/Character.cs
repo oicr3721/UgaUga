@@ -73,7 +73,7 @@ public class Character : MonoBehaviour
         animator.SetBool("Moving", false);
     }
 
-    protected virtual void SetCanMove(bool value)
+    public virtual void SetCanMove(bool value)
     {
         canMove = value;
 

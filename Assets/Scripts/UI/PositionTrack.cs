@@ -78,11 +78,11 @@ public class PositionTrack : MonoBehaviour
             pos.x = markerPos;
             positionMarker.markerUI.anchoredPosition = pos;
 
-            Debug.Log(
-                $"start={startPoint.position.x}, " +
-                $"target={positionMarker.target.position.x}, " +
-                $"end={endPoint.position.x}, " +
-                $"progress={progress}");
+            //Debug.Log(
+            //    $"start={startPoint.position.x}, " +
+            //    $"target={positionMarker.target.position.x}, " +
+            //    $"end={endPoint.position.x}, " +
+            //    $"progress={progress}");
         }
     }
 }
