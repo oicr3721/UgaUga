@@ -52,7 +52,7 @@ public class StageEndingManager : MonoBehaviour
 
     private IEnumerator FailRoutine()
     {
-        //DisableGameplay();
+        DisableGameplay();
 
         failTimeline.Play();
 

@@ -11,15 +11,17 @@ public class RopeVisual : MonoBehaviour
     [SerializeField] private float maxWidth = 0.12f;
 
     [Header("Line Color")]
-    [SerializeField] private float maxVisualTension = 5f;
     [SerializeField] private Color dangerColor = Color.red;
     [SerializeField] private Color cautionColor = Color.yellow;
     [SerializeField] private Color normalColor = Color.white;
+
     private Color currentColor;
+    private float dangerTension;
 
     private void Awake()
     {
         rope.OnReset += ResetVisual;
+        dangerTension = rope.DangerTension;
     }
 
     private void LateUpdate()
@@ -57,29 +59,35 @@ public class RopeVisual : MonoBehaviour
         lineRenderer.startWidth = width;
         lineRenderer.endWidth = width;
     }
-
     private void UpdateTensionColor()
     {
-        float tensionRatio =
-            Mathf.Clamp01(
-                rope.CurrentTension /
-                maxVisualTension);
-
         Color targetColor;
 
-        if (tensionRatio < 0.5f)
+        if (rope.CurrentTension <= 0f)
         {
+            targetColor = normalColor;
+        }
+        else if (rope.CurrentTension < dangerTension)
+        {
+            float t =
+                rope.CurrentTension / dangerTension;
+
             targetColor = Color.Lerp(
                 normalColor,
                 cautionColor,
-                tensionRatio * 2f);
+                t);
         }
         else
         {
+            float t =
+                Mathf.Clamp01(
+                    (rope.CurrentTension - dangerTension)
+                    / dangerTension);
+
             targetColor = Color.Lerp(
                 cautionColor,
                 dangerColor,
-                (tensionRatio - 0.5f) * 2f);
+                t);
         }
 
         currentColor = Color.Lerp(

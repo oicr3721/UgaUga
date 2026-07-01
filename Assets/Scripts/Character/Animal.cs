@@ -17,6 +17,8 @@ public class Animal : Character, IRopeCatchable, IDamageable
     public Transform AttachPoint => attachPoint;
     public float RopeWeight => ropeWeight;
 
+    private Rope rope;
+
     private void Start()
     {
         hp.SetValue(hp.MaxValue);
@@ -25,23 +27,25 @@ public class Animal : Character, IRopeCatchable, IDamageable
     #region IRopeCatchable
     public void OnRopeAttached(Rope rope)
     {
-
+        this.rope = rope;
     }
 
     public void OnRopeReleased(Rope rope, Vector2 force)
     {
-        rigidBody.AddForce(force);
+        rigidBody?.AddForce(force);
+
+        this.rope = null;
     }
 
     public void OnRopePulled(Vector2 force)
     {
-        rigidBody.AddForce(force);
+        rigidBody?.AddForce(force);
     }
 
     public void ApplyRopeForce(Vector2 force)
     {
         force.y = 0;
-        rigidBody.AddForce(force);
+        rigidBody?.AddForce(force);
     }
     #endregion
 
@@ -53,7 +57,8 @@ public class Animal : Character, IRopeCatchable, IDamageable
         HuntingStageManager.Instance?.OnAnimalCaptured(this);
 
         SetCanMove(false);
-        Destroy(this);
+
+        rope?.Detach();
     }
 
     public void TakeDamage(float damage)
@@ -62,5 +67,19 @@ public class Animal : Character, IRopeCatchable, IDamageable
         damageFlash.Play();
 
         CheckDeath();
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        //끝에 도달
+
+        EndPoint endPoint = collision.GetComponent<EndPoint>();
+
+        if (endPoint != null && HP.CurrentValue > 0)
+        {
+            HuntingStageManager.Instance.OnAnimalAtEndPoint();
+
+            rope?.Detach();
+        }
     }
 }

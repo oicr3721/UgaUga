@@ -45,6 +45,7 @@ public abstract class Teammate : Character
         windupOffset = data.windupOffset;
         cooldownOffset = data.cooldownOffset;
         attackRangeOffset = data.attackRangeOffset;
+        moveSpeed = data.speed;
     }
 
     public bool CanAttackTarget(Transform target)

@@ -34,7 +34,7 @@ public class RopeProjectile : MonoBehaviour
 
         if (lt > lifeTime || transform.position.y < -1)
         {
-            rope.ResetRope();
+            rope.Detach();
             gameObject.SetActive(false);
             return;
         }

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Melee Teammate Data
   m_EditorClassIdentifier: 
   type: 0
+  meatCount: 2
+  speed: 1.4
   attackDamage: 1
   attackRange: 0.7
   attackWindup: 0.3

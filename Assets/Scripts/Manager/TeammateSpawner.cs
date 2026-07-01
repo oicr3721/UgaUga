@@ -9,9 +9,10 @@ public class TeammateSpawner : MonoBehaviour
     [SerializeField] private Transform attackTarget;
 
     [SerializeField] private float spawnSpace; //스폰 간격
+    [SerializeField] private int spawnLayerOrder = 0; //스프라이트 레이어 순서
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         SpawnTeammates();
     }
@@ -41,6 +42,9 @@ public class TeammateSpawner : MonoBehaviour
             TeammateController tmc = tm.GetComponentInChildren<TeammateController>();
             tmc.SetTarget(attackTarget);
             StageEndingManager.Instance.AddDisableBehaviour(tmc);
+
+            tm.SpriteRenderer.sortingOrder = spawnLayerOrder;
+            spawnLayerOrder++;
 
             spawnX += spawnSpace;
         }

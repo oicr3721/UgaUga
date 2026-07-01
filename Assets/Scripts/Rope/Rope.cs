@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cinemachine;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -21,16 +22,26 @@ public class Rope : MonoBehaviour
     [SerializeField] private float durabilityLossPerTension = 1.5f;
     [SerializeField] private float durabilityRecoverPerSecond = 1f;
     [SerializeField] private float recoverDelay = 1.2f;
-    [SerializeField] private float tensionThreshold = 0.1f;
+    [SerializeField] private float dangerDurabilityMultiplier = 2f;
 
     [Header("Rope")]
+    [SerializeField] private Transform midPoint;
     [SerializeField] private float releaseForce = 0.5f;
     [SerializeField] private float pullForce = 1.2f;
     [SerializeField] private float loosenLength = 0.02f;
 
-    private float noTensionTimer;
+    [Header("Tension")]
+    [SerializeField] private float tensionThreshold = 0.1f;
+    [SerializeField] private float dangerTension = 2f;
+
+    [Header("Camera")]
+    [SerializeField] private CinemachineVirtualCamera ropeVirtualCamera;
 
     public float CurrentTension { get; private set; }
+    public float DangerTension => dangerTension;
+
+    private float noTensionTimer;
+
     public float CurrentDurability => durability.CurrentValue;
     public float MaxDurability => durability.MaxValue;
 
@@ -55,14 +66,6 @@ public class Rope : MonoBehaviour
     private void Awake()
     {
         durability.SetValue(durability.MaxValue);
-    }
-
-    private void OnDisable()
-    {
-        holder?.OnRopeRelease(this, Vector2.zero);
-        target?.OnRopeReleased(this, Vector2.zero);
-
-        ResetRope();
     }
 
     #region Verlet
@@ -124,9 +127,11 @@ public class Rope : MonoBehaviour
 
         segmentLength = points.Count > 1 ? ropeLength / (points.Count - 1) : 0f;
 
-        holder.OnRopeHold(this);
-        target.OnRopeAttached(this);
+        holder?.OnRopeHold(this);
+        target?.OnRopeAttached(this);
         State = RopeState.Attached;
+
+        EnableRopeCamera();
     }
     #endregion
 
@@ -152,13 +157,11 @@ public class Rope : MonoBehaviour
         holder?.OnRopeRelease(this, -holderForce * releaseForce);
         target?.OnRopeReleased(this, -targetForce * releaseForce);
 
-        holder = null;
-        target = null;
 
         ResetRope();
     }
 
-    public void ResetRope()
+    private void ResetRope()
     {
         State = RopeState.Idle;
 
@@ -170,6 +173,19 @@ public class Rope : MonoBehaviour
         CurrentTension = 0;
 
         OnReset?.Invoke();
+
+        holder = null;
+        target = null;
+
+        DisableRopeCamera();
+    }
+
+    public void Detach()
+    {
+        holder?.OnRopeRelease(this, Vector2.zero);
+        target?.OnRopeReleased(this, Vector2.zero);
+
+        ResetRope();
     }
 
     public void Pull(float power)
@@ -228,7 +244,10 @@ public class Rope : MonoBehaviour
     private void SimulateAttached()
     {
         Simulate();
+
         ApplyConstraints(holder.AttachPoint.position, target.AttachPoint.position);
+
+        UpdateMidPoint();
 
         UpdateTension();
 
@@ -344,21 +363,22 @@ public class Rope : MonoBehaviour
 
         return dir * CurrentTension * tensionForceMultiplier;
     }
-
     private void UpdateDurability()
     {
-        float tension = CurrentTension;
-
-        if (tension > tensionThreshold)
+        if (CurrentTension > 0f)
         {
             noTensionTimer = 0f;
 
-            float effectiveTension = tension - tensionThreshold;
+            float multiplier =
+                CurrentTension >= dangerTension
+                ? dangerDurabilityMultiplier
+                : 1f;
 
             durability.SubtractValue(
-                effectiveTension
-                * durabilityLossPerTension
-                * Time.deltaTime);
+                CurrentTension *
+                durabilityLossPerTension *
+                multiplier *
+                Time.deltaTime);
 
             if (durability.CurrentValue <= 0f)
             {
@@ -372,7 +392,9 @@ public class Rope : MonoBehaviour
 
             if (noTensionTimer >= recoverDelay)
             {
-                durability.AddValue(durabilityRecoverPerSecond * Time.deltaTime);
+                durability.AddValue(
+                    durabilityRecoverPerSecond *
+                    Time.deltaTime);
             }
         }
     }
@@ -382,6 +404,7 @@ public class Rope : MonoBehaviour
         if (target == null || holder == null)
         {
             CurrentTension = 0f;
+            holder?.OnRopeTension(false);
             return;
         }
 
@@ -389,6 +412,33 @@ public class Rope : MonoBehaviour
             holder.AttachPoint.position,
             target.AttachPoint.position);
 
-        CurrentTension = Mathf.Max(0f, dist - ropeLength);
+        CurrentTension = Mathf.Max(
+            0f,
+            dist - ropeLength - tensionThreshold);
+
+        holder.OnRopeTension(CurrentTension > 0f);
+    }
+
+    private void UpdateMidPoint()
+    {
+        if (holder == null || target == null)
+            return;
+
+        Vector3 pos =
+            (holder.AttachPoint.position + target.AttachPoint.position) * 0.5f;
+
+        pos.y = 0f;
+
+        midPoint.position = pos;
+    }
+
+    private void EnableRopeCamera()
+    {
+        ropeVirtualCamera.Priority = 20;
+    }
+
+    private void DisableRopeCamera()
+    {
+        ropeVirtualCamera.Priority = 0;
     }
 }

@@ -13,6 +13,10 @@ public class TeammateData : ScriptableObject
 {
     public TeammateType type;
 
+    [Header("Stat")]
+    public int meatCount;
+    public float speed;
+
     [Header("Attack")]
     public float attackDamage;
     public float attackRange;
@@ -25,4 +29,5 @@ public class TeammateData : ScriptableObject
     public Vector2 windupOffset;
     public Vector2 cooldownOffset;
     public Vector2 attackRangeOffset;
+
 }

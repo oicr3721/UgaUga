@@ -13,6 +13,7 @@ public class Player : Character, IRopeHoldable
     [Header("Stamina")]
     [SerializeField] private ObservableValue stamina;
     [SerializeField] private float staminaPerPull = 1f;
+    [SerializeField] private float staminaPerHold = 1f;
     [SerializeField] private float staminaRecoverPerSecond = 2f;
     [SerializeField] private float staminaRecoverDelay = 0.2f;
 
@@ -36,6 +37,8 @@ public class Player : Character, IRopeHoldable
     public void OnRopeHold(Rope rope)
     {
         this.rope = rope;
+        staminaRecoverTimer = 0f;
+        stamina.SubtractValue(staminaPerHold);
 
         animator.SetBool("Catching", true);
     }
@@ -58,8 +61,13 @@ public class Player : Character, IRopeHoldable
         if (stamina.CurrentValue <= 0f)
         {
             rope.Release();
-            this.rope = null;
+            rope = null;
         }
+    }
+
+    public void OnRopeTension(bool hasTension)
+    {
+        animator.SetBool("Catching", hasTension);
     }
 
     public void ApplyRopeForce(Vector2 force)

@@ -8,9 +8,7 @@ public class UIFollowTarget : MonoBehaviour
     [Header("Offset")]
     [SerializeField] private Vector3 worldOffset;
 
-    [Header("Camera")]
-    [SerializeField] private Camera targetCamera;
-
+    private Camera targetCamera;
     private RectTransform rectTransform;
     private Canvas parentCanvas;
 
@@ -19,8 +17,7 @@ public class UIFollowTarget : MonoBehaviour
         rectTransform = GetComponent<RectTransform>();
         parentCanvas = GetComponentInParent<Canvas>();
 
-        if (targetCamera == null)
-            targetCamera = Camera.main;
+        targetCamera = Camera.main;
     }
 
     private void LateUpdate()

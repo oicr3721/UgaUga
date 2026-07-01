@@ -67,6 +67,7 @@ public class Character : MonoBehaviour
     }
 
     protected virtual void Tick() { }
+
     protected virtual void StopMove()
     {
         moveInput = Vector2.zero;
