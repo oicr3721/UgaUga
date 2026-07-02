@@ -23,6 +23,11 @@ public class SceneTransition : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    private void Start()
+    {
+        fadeUI.Hide();
+    }
+
     public void Load(string sceneName)
     {
         if (isLoading)

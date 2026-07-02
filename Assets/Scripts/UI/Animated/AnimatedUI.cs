@@ -8,10 +8,6 @@ public abstract class AnimatedUI : MonoBehaviour
     public bool IsPlaying =>
         currentTween != null && currentTween.IsActive() && currentTween.IsPlaying();
 
-    protected virtual void Awake()
-    {
-        gameObject.SetActive(false);
-    }
 
     public Tween Show()
     {

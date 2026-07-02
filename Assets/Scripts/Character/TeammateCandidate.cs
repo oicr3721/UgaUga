@@ -36,9 +36,12 @@ public class TeammateCandidate : Character, IInteractable
     public string InteractionText => recruited ? "퇴출" : "모집";
 
     private bool recruited = false;
+    public bool Recruited { get {  return recruited; } set { recruited = value; } }
 
     private void Start()
     {
+        animator.Update(UnityEngine.Random.Range(0f, 1f));
+
         dataUI.UpdateData(data);
     }
 

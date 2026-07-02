@@ -13,6 +13,10 @@ public class GameManager : MonoBehaviour
     public IReadOnlyList<TeammateData> TeammateDatas => teammateDatas;
     [SerializeField] private List<TeammateData> teammateDatas = new();
 
+    public int MaxTeammateCount => maxTeammateCount;
+    [SerializeField] private int maxTeammateCount = 4;
+
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -24,5 +28,10 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(this);
+    }
+
+    public void SetTeam(List<TeammateData> datas)
+    {
+        teammateDatas = datas;
     }
 }

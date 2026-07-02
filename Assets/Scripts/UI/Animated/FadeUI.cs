@@ -20,6 +20,7 @@ public class FadeUI : AnimatedUI
 
     protected override void BeforeShow()
     {
+        gameObject.SetActive(false);
         canvasGroup.alpha = 0;
         canvasGroup.blocksRaycasts = true;
     }
@@ -31,6 +32,7 @@ public class FadeUI : AnimatedUI
 
     protected override void BeforeHide()
     {
+        gameObject.SetActive(true);
         canvasGroup.alpha = 1;
         canvasGroup.blocksRaycasts = false;
     }

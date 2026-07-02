@@ -16,9 +16,9 @@ public class FloatingUI : AnimatedUI
 
     private Vector2 originalPosition;
 
-    protected override void Awake()
+    protected void Awake()
     {
-        base.Awake();
+        gameObject.SetActive(false);
 
         if (rectTransform == null)
             rectTransform = GetComponent<RectTransform>();
