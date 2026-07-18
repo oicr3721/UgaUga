@@ -6,4 +6,6 @@ public interface IRopeCatchable : IRopePhysicsBody
     void OnRopePulled(Vector2 dir);
     void OnRopeReleased(Rope rope, Vector2 releaseImpulse);
 
+    void OnRopeTension(bool hasTension);
+
 }

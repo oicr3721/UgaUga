@@ -4,7 +4,7 @@ public class Animal : Character, IRopeCatchable, IDamageable
 {
     [Header("Component")]
     [SerializeField] private Rigidbody2D rigidBody;
-    [SerializeField] private DamageFlash damageFlash;
+    //[SerializeField] private DamageFlash damageFlash;
 
     [Header("Stat")]
     [SerializeField] private ObservableValue hp;
@@ -42,6 +42,12 @@ public class Animal : Character, IRopeCatchable, IDamageable
         rigidBody?.AddForce(force);
     }
 
+    public void OnRopeTension(bool hasTension)
+    {
+        if(hasTension)
+            TakeDamage(hp.CurrentValue / 5000);
+    }
+
     public void ApplyRopeForce(Vector2 force)
     {
         force.y = 0;
@@ -59,12 +65,14 @@ public class Animal : Character, IRopeCatchable, IDamageable
         SetCanMove(false);
 
         rope?.Detach();
+
+        animator.SetTrigger("Dead");
     }
 
     public void TakeDamage(float damage)
     {
         hp.SubtractValue(damage);
-        damageFlash.Play();
+        //damageFlash.Play();
 
         CheckDeath();
     }

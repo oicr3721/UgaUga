@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 8cf81a550ac28ba4b9db294a39b7417d
+guid: 3cb27fefea4dfc44cb6e6519cbfb8146
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -123,22 +123,43 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spear_0
+      name: UI Rock Panel_0
       rect:
         serializedVersion: 2
         x: 2
-        y: 2
-        width: 23
-        height: 5
+        y: 29
+        width: 128
+        height: 76
       alignment: 9
-      pivot: {x: 0.6, y: 0.5}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ecdafa3b3123905468ca9ed2cff3e64f
-      internalID: -592426617
+      spriteID: c3ce3ff89b7610a4b95b16ea2961c26b
+      internalID: 534234800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI Rock Panel_1
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 2
+        width: 74
+        height: 18
+      alignment: 9
+      pivot: {x: 0.5, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f3c635459224ef5409f7452624b2db18
+      internalID: -909351144
       vertices: []
       indices: 
       edges: []
@@ -154,7 +175,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Spear_0: -592426617
+      UI Rock Panel_0: 534234800
+      UI Rock Panel_1: -909351144
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

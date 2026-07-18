@@ -80,7 +80,6 @@ public class TeamManager : MonoBehaviour
         // 일단 임시로 아무 곳으로 보내기
         // 나중엔 애들끼리 안 겹치게 처리할 것.
         Vector2 randomPos =
-            (Vector2)exitTransform.position +
             Vector2.right * Random.Range(waitPosRange.x, waitPosRange.y);
 
         tc.SetDestination(randomPos);

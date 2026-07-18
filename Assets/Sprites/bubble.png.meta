@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 8cf81a550ac28ba4b9db294a39b7417d
+guid: b15ed7045f97b4b4a9613fb85682c999
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -123,22 +123,43 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spear_0
+      name: bubble_0
       rect:
         serializedVersion: 2
         x: 2
+        y: 10
+        width: 18
+        height: 17
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 3, y: 3, z: 3, w: 3}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8cb719e444cd10243bdf37ad0e40784a
+      internalID: 619285219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bubble_1
+      rect:
+        serializedVersion: 2
+        x: 8
         y: 2
-        width: 23
+        width: 7
         height: 5
-      alignment: 9
-      pivot: {x: 0.6, y: 0.5}
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ecdafa3b3123905468ca9ed2cff3e64f
-      internalID: -592426617
+      spriteID: 2706953795261b4478360e599feb8374
+      internalID: 1647058249
       vertices: []
       indices: 
       edges: []
@@ -154,7 +175,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Spear_0: -592426617
+      bubble_0: 619285219
+      bubble_1: 1647058249
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

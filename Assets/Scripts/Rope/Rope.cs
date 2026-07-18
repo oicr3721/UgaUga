@@ -416,7 +416,10 @@ public class Rope : MonoBehaviour
             0f,
             dist - ropeLength - tensionThreshold);
 
+
+
         holder.OnRopeTension(CurrentTension > 0f);
+        target.OnRopeTension(CurrentTension > 0f);
     }
 
     private void UpdateMidPoint()
