@@ -46,6 +46,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerMeat: {fileID: 6880183828787566797}
+  teammateDatas: []
+  initialWeapons:
+  - weapon: {fileID: 11400000, guid: c22d9956b56045e296a315e3b9e32f24, type: 2}
+    count: 2
+  - weapon: {fileID: 11400000, guid: 21899be42bc045b4b0aceec685a7f16f, type: 2}
+    count: 2
+  maxTeammateCount: 4
 --- !u!1 &3060296900532115583
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,111 +1,232 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class TeamManager : MonoBehaviour
 {
-    [Header("Candidates")]
+    private const float MaximumShare = 1f;
+    private const float ShareTolerance = 0.0001f;
+
+    [Header("Scene Candidates")]
+    [Tooltip("HomeScene에 미리 배치된 모든 모집 가능 NPC입니다. 런타임에는 생성하지 않습니다.")]
     [SerializeField] private List<TeammateCandidate> candidates = new();
-    [SerializeField] private TeammateCandidate candidatePrefab;
 
-    [Header("Lineup")]
-    [Tooltip("출구 앞에 후보를 배치할 때 사용하는 간격입니다.")]
-    [Min(0.01f)]
-    [SerializeField] private float lineSpace;
-    [SerializeField] private Transform exitTransform;
-    [SerializeField] private Transform cutlineTransform;
-    [SerializeField] private Vector2 waitPosRange = new(3f, 8f);
+    private readonly List<TeammateCandidate> teamMembers = new();
 
-    [Header("Cost")]
-    [FormerlySerializedAs("RequiredMeat")]
-    [SerializeField] private ObservableValue requiredMeat;
+    public event Action Initialized;
+    public event Action TeamChanged;
+    public event Action ShareLimitExceeded;
 
-    private CandidateLineup lineup;
-
-    public ObservableValue RequiredMeat => requiredMeat;
+    public IReadOnlyList<TeammateCandidate> AllCandidates => candidates;
+    public IReadOnlyList<TeammateCandidate> TeamMembers => teamMembers;
+    public float TotalShare => teamMembers.Sum(candidate => candidate.Data.ShareRate);
+    public bool IsInitialized { get; private set; }
 
     public bool IsTeamValid =>
-        candidates.Count <= GameSession.MaxTeammateCount &&
-        requiredMeat.CurrentValue <= GameSession.PlayerMeat.CurrentValue;
-
-    private void Awake()
-    {
-        lineup = new CandidateLineup(exitTransform, cutlineTransform, lineSpace, waitPosRange);
-    }
+        teamMembers.Count <= GameSession.MaxTeammateCount &&
+        TotalShare <= MaximumShare + ShareTolerance;
 
     private void OnEnable()
     {
-        TeammateCandidate.RecruitmentChanged += HandleRecruitmentChanged;
+        TeammateCandidate.TeamChangeRequested += HandleTeamChangeRequested;
     }
 
     private void Start()
     {
+        ValidateCandidateIds();
         LoadConfirmedTeam();
-        lineup.SetCutline(GameSession.MaxTeammateCount);
+        IsInitialized = true;
+        Initialized?.Invoke();
+        TeamChanged?.Invoke();
     }
 
     private void OnDisable()
     {
-        TeammateCandidate.RecruitmentChanged -= HandleRecruitmentChanged;
+        TeammateCandidate.TeamChangeRequested -= HandleTeamChangeRequested;
     }
 
-    private void HandleRecruitmentChanged(TeammateCandidate candidate, bool recruited)
+    public bool TryAddCandidate(TeammateCandidate candidate)
     {
-        if (recruited)
-            AddCandidate(candidate);
-        else
-            RemoveCandidate(candidate);
+        if (!IsRegisteredCandidate(candidate) || teamMembers.Contains(candidate))
+            return false;
+
+        if (teamMembers.Count >= GameSession.MaxTeammateCount)
+            return false;
+
+        if (TotalShare + candidate.Data.ShareRate > MaximumShare + ShareTolerance)
+        {
+            ShareLimitExceeded?.Invoke();
+            return false;
+        }
+
+        teamMembers.Add(candidate);
+        candidate.SetTeamStatus(true);
+        NotifyTeamChanged();
+        return true;
     }
 
-    private void AddCandidate(TeammateCandidate candidate)
+    public bool RemoveCandidate(TeammateCandidate candidate)
     {
-        if (candidates.Contains(candidate))
-            return;
+        if (candidate == null || !teamMembers.Remove(candidate))
+            return false;
 
-        candidates.Add(candidate);
-        UpdateCandidateLineup();
-        UpdateRequiredMeat();
+        candidate.SetTeamStatus(false);
+        NotifyTeamChanged();
+        return true;
     }
 
-    private void RemoveCandidate(TeammateCandidate candidate)
+    public bool TryEquipWeapon(TeammateCandidate candidate, WeaponData newWeapon)
     {
-        candidates.Remove(candidate);
-        lineup.MoveToWaitingPosition(candidate);
-        UpdateCandidateLineup();
-        UpdateRequiredMeat();
+        if (!IsRegisteredCandidate(candidate) || newWeapon == null)
+            return false;
+
+        WeaponData previousWeapon = candidate.EquippedWeapon;
+        if (previousWeapon == newWeapon)
+            return true;
+
+        if (!GameSession.PlayerWeapons.TryExchange(newWeapon, previousWeapon))
+            return false;
+
+        candidate.SetEquippedWeapon(newWeapon);
+        SaveCandidateWeapon(candidate, newWeapon);
+        TeamChanged?.Invoke();
+        return true;
+    }
+
+    public bool TryTakeEquippedWeapon(TeammateCandidate candidate, out WeaponData weapon)
+    {
+        weapon = null;
+        if (!IsRegisteredCandidate(candidate) || candidate.EquippedWeapon == null)
+            return false;
+
+        weapon = candidate.EquippedWeapon;
+        candidate.SetEquippedWeapon(null);
+        SaveCandidateWeapon(candidate, null);
+        TeamChanged?.Invoke();
+        return true;
+    }
+
+    public bool EquipTransferredWeapon(TeammateCandidate candidate, WeaponData weapon)
+    {
+        if (!IsRegisteredCandidate(candidate) || weapon == null)
+            return false;
+
+        WeaponData previousWeapon = candidate.EquippedWeapon;
+        candidate.SetEquippedWeapon(weapon);
+        SaveCandidateWeapon(candidate, weapon);
+
+        if (previousWeapon != null && previousWeapon != weapon)
+            GameSession.PlayerWeapons.Add(previousWeapon);
+
+        TeamChanged?.Invoke();
+        return true;
     }
 
     public void ConfirmTeam()
     {
-        GameSession.PlayerMeat.SubtractValue(requiredMeat.CurrentValue);
-        GameSession.SetTeam(candidates.Select(candidate => candidate.Loadout));
+        GameSession.SetTeam(teamMembers.Select(candidate => candidate.Loadout));
+    }
+
+    private void HandleTeamChangeRequested(TeammateCandidate candidate)
+    {
+        if (teamMembers.Contains(candidate))
+            RemoveCandidate(candidate);
+        else
+            TryAddCandidate(candidate);
     }
 
     private void LoadConfirmedTeam()
     {
-        candidates.Clear();
+        teamMembers.Clear();
 
-        for (int i = 0; i < GameSession.TeammateLoadouts.Count; i++)
+        foreach (TeammateCandidate candidate in candidates)
         {
-            TeammateCandidate candidate = Instantiate(candidatePrefab);
-            candidate.SetLoadout(GameSession.TeammateLoadouts[i]);
-            candidate.Recruited = true;
-            candidates.Add(candidate);
-            lineup.PlaceImmediately(candidate, i);
+            if (candidate == null)
+                continue;
+
+            candidate.SetEquippedWeapon(GameSession.GetCandidateWeapon(candidate.CandidateId));
+            candidate.SetTeamStatus(false);
         }
 
-        UpdateRequiredMeat();
+        HashSet<TeammateCandidate> assignedCandidates = new();
+
+        foreach (TeammateLoadout loadout in GameSession.TeammateLoadouts)
+        {
+            TeammateCandidate candidate = FindCandidate(loadout, assignedCandidates);
+            if (candidate == null)
+            {
+                Debug.LogWarning($"Scene candidate not found for teammate ID '{loadout.Teammate?.TeammateId}'.", this);
+                continue;
+            }
+
+            candidate.SetEquippedWeapon(loadout.EquippedWeapon);
+            SaveCandidateWeapon(candidate, loadout.EquippedWeapon);
+            candidate.SetTeamStatus(true);
+            teamMembers.Add(candidate);
+            assignedCandidates.Add(candidate);
+        }
+
+        // Legacy/default loadouts do not yet know a scene candidate ID.
+        // Normalize immediately so subsequent scene loads restore the same NPCs.
+        GameSession.SetTeam(teamMembers.Select(candidate => candidate.Loadout));
     }
 
-    private void UpdateCandidateLineup()
+    private TeammateCandidate FindCandidate(
+        TeammateLoadout loadout,
+        HashSet<TeammateCandidate> assignedCandidates)
     {
-        lineup.Arrange(candidates);
+        if (loadout?.Teammate == null)
+            return null;
+
+        if (!string.IsNullOrWhiteSpace(loadout.CandidateId))
+        {
+            return candidates.FirstOrDefault(candidate =>
+                candidate != null &&
+                !assignedCandidates.Contains(candidate) &&
+                candidate.CandidateId == loadout.CandidateId);
+        }
+
+        string teammateId = loadout.Teammate.TeammateId;
+        return candidates.FirstOrDefault(candidate =>
+            candidate != null &&
+            !assignedCandidates.Contains(candidate) &&
+            candidate.Data != null &&
+            candidate.Data.TeammateId == teammateId);
     }
 
-    private void UpdateRequiredMeat()
+    private bool IsRegisteredCandidate(TeammateCandidate candidate)
     {
-        int totalCost = candidates.Sum(candidate => candidate.Data.MeatCost);
-        requiredMeat.SetValue(totalCost);
+        return candidate != null && candidates.Contains(candidate);
+    }
+
+    private void NotifyTeamChanged()
+    {
+        TeamChanged?.Invoke();
+    }
+
+    private void SaveCandidateWeapon(TeammateCandidate candidate, WeaponData weapon)
+    {
+        GameSession.SetCandidateWeapon(candidate.CandidateId, weapon);
+    }
+
+    private void ValidateCandidateIds()
+    {
+        HashSet<string> ids = new();
+
+        foreach (TeammateCandidate candidate in candidates)
+        {
+            if (candidate == null)
+                continue;
+
+            if (string.IsNullOrWhiteSpace(candidate.CandidateId))
+            {
+                Debug.LogError($"Candidate '{candidate.name}' has no candidate ID.", candidate);
+                continue;
+            }
+
+            if (!ids.Add(candidate.CandidateId))
+                Debug.LogError($"Duplicate candidate ID '{candidate.CandidateId}'.", candidate);
+        }
     }
 }

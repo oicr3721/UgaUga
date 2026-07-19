@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,12 +15,17 @@ public class PlayerMoveController : MonoBehaviour
 
     private bool isMovementLocked;
 
+    public event Action<Vector2> MoveRequested;
+
     public void MoveInput(InputAction.CallbackContext context)
     {
+        Vector2 rawInput = context.ReadValue<Vector2>();
+        if (rawInput.magnitude >= deadzone)
+            MoveRequested?.Invoke(rawInput);
+
         if (isMovementLocked)
             return;
 
-        Vector2 rawInput = context.ReadValue<Vector2>();
         Vector2 input = rawInput.magnitude < deadzone
             ? Vector2.zero
             : rawInput.normalized;

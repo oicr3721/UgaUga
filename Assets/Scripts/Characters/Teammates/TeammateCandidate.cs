@@ -1,102 +1,280 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
+
+public enum CandidateCouncilState
+{
+    Idle,
+    Walking,
+    ReachedPosition,
+    Rotating,
+    Ready
+}
 
 public class TeammateCandidate : Character, IInteractable
 {
-    public static event Action<TeammateCandidate, bool> RecruitmentChanged;
+    public static event Action<TeammateCandidate> TeamChangeRequested;
 
     [Header("Movement")]
     [Min(0f)]
     [SerializeField] private float arriveDistance = 0.05f;
 
     [Header("Data")]
+    [Tooltip("HomeScene 안에서 이 NPC를 식별하는 고유 ID입니다.")]
+    [SerializeField] private string candidateId;
     [SerializeField] private TeammateData data;
     [SerializeField] private WeaponData equippedWeapon;
-    [SerializeField] private TeammateDataUI dataUI;
 
+    [Header("World Presentation")]
+    [SerializeField] private TeammateDataUI hoverInfo;
+    [SerializeField] private SpriteRenderer equippedWeaponRenderer;
+
+    [Header("Weapon Retrieval")]
+    [Min(0.05f)]
+    [SerializeField] private float weaponHoldDuration = 0.35f;
+
+    private Vector2 originalPosition;
     private Vector2 targetPosition;
-    private bool hasDestination;
+    private Transform councilFocus;
+    private CandidateCouncilState councilState;
+    private bool isCouncilDestination;
+    private bool managementEnabled;
     private bool recruited;
+    private bool isPointerHeld;
+    private bool startedWeaponDrag;
+    private float pointerDownTime;
+    private TeamManagementView managementView;
 
-    public TeammateData Data
-    {
-        get => data;
-        set
-        {
-            if (value == null)
-                return;
 
-            data = value;
-            equippedWeapon = data.DefaultWeapon;
-            dataUI.UpdateData(data, equippedWeapon);
-        }
-    }
+    public event Action<TeammateCandidate> BecameReady;
 
-    public WeaponData EquippedWeapon => equippedWeapon != null ? equippedWeapon : data.DefaultWeapon;
-    public TeammateLoadout Loadout => new(data, EquippedWeapon);
-    public bool CanInteract => !hasDestination;
+    public string CandidateId => candidateId;
+    public TeammateData Data => data;
+    public WeaponData EquippedWeapon => equippedWeapon;
+    public TeammateLoadout Loadout => new(candidateId, data, equippedWeapon);
+    public CandidateCouncilState CouncilState => councilState;
+    public bool IsReady => councilState == CandidateCouncilState.Ready;
+    public bool IsManagementEnabled => managementEnabled;
+    public bool CanInteract => councilState == CandidateCouncilState.Idle;
     public Transform InteractionPoint => transform;
-    public string InteractionText => recruited ? "제외" : "모집";
+    public string InteractionText => "대화";
 
     public bool Recruited
     {
         get => recruited;
-        set => recruited = value;
+        set => SetTeamStatus(value);
+    }
+
+    private void Awake()
+    {
+        originalPosition = transform.position;
+        councilState = CandidateCouncilState.Idle;
     }
 
     private void Start()
     {
         animator.Update(UnityEngine.Random.Range(0f, 1f));
-        dataUI.UpdateData(data, EquippedWeapon);
+        hoverInfo?.UpdateData(data, equippedWeapon);
+        hoverInfo?.SetVisible(false);
+        UpdateWeaponVisual();
     }
 
     public void Interact()
     {
-        recruited = !recruited;
-        RecruitmentChanged?.Invoke(this, recruited);
+        if (CanInteract)
+            TeamChangeRequested?.Invoke(this);
     }
 
-    public void SetLoadout(TeammateLoadout loadout)
+    public void SetEquippedWeapon(WeaponData weapon)
     {
-        data = loadout.Teammate;
-        equippedWeapon = loadout.EquippedWeapon;
-        dataUI.UpdateData(data, equippedWeapon);
+        equippedWeapon = weapon;
+        hoverInfo?.UpdateData(data, equippedWeapon);
+        UpdateWeaponVisual();
+    }
+
+    public void SetManagementView(TeamManagementView view)
+    {
+        managementView = view;
+    }
+
+    public void SetTeamStatus(bool isTeamMember)
+    {
+        recruited = isTeamMember;
+
+        if (IsReady)
+            SetSittingState(recruited);
+    }
+
+    public void SetManagementEnabled(bool value)
+    {
+        managementEnabled = value;
+
+        if (!value)
+        {
+            isPointerHeld = false;
+            hoverInfo?.SetVisible(false);
+        }
+    }
+
+    public void MoveToCouncilSlot(Vector2 position, Transform focus)
+    {
+        targetPosition = position;
+        councilFocus = focus;
+        isCouncilDestination = true;
+        councilState = CandidateCouncilState.Walking;
+        SetSittingState(false);
+    }
+
+    public void PlaceAtCouncilSlot(Vector2 position, Transform focus)
+    {
+        transform.position = position;
+        targetPosition = position;
+        councilFocus = focus;
+        isCouncilDestination = true;
+        councilState = CandidateCouncilState.Rotating;
+        CompleteRotation();
+    }
+
+    public void ReturnHome()
+    {
+        ClearCouncilSlot();
+        targetPosition = originalPosition;
+        councilState = CandidateCouncilState.Walking;
+        SetSittingState(false);
+        SetManagementEnabled(false);
     }
 
     public void SetDestination(Vector2 position)
     {
         targetPosition = position;
-        hasDestination = true;
+        isCouncilDestination = false;
+        councilState = CandidateCouncilState.Walking;
     }
 
     public void OnHoverEnter()
     {
-        dataUI.HoverEnter();
+        if (managementEnabled)
+        {
+            hoverInfo.SetVisible(true);
+            hoverInfo.HoverEnter();
+        }
     }
 
     public void OnHoverExit()
     {
-        dataUI.HoverExit();
+        hoverInfo?.HoverExit();
+        hoverInfo?.SetVisible(false);
     }
 
     protected override void Tick()
     {
-        if (!hasDestination)
+        switch (councilState)
         {
-            SetMoveInput(Vector2.zero);
-            return;
+            case CandidateCouncilState.Walking:
+                UpdateWalking();
+                break;
+            case CandidateCouncilState.ReachedPosition:
+                councilState = CandidateCouncilState.Rotating;
+                break;
+            case CandidateCouncilState.Rotating:
+                CompleteRotation();
+                break;
         }
 
+        UpdateWeaponFacing();
+
+        if (isPointerHeld && !startedWeaponDrag && managementEnabled && equippedWeapon != null &&
+            Time.unscaledTime - pointerDownTime >= weaponHoldDuration)
+        {
+            Vector2 pointerPosition = Mouse.current != null
+                ? Mouse.current.position.ReadValue()
+                : Vector2.zero;
+            startedWeaponDrag = managementView != null &&
+                managementView.BeginCandidateWeaponDrag(this, pointerPosition);
+        }
+    }
+
+    private void UpdateWalking()
+    {
         Vector2 direction = targetPosition - (Vector2)transform.position;
-
-        if (direction.sqrMagnitude <= arriveDistance * arriveDistance)
+        if (direction.sqrMagnitude > arriveDistance * arriveDistance)
         {
-            transform.position = targetPosition;
-            hasDestination = false;
-            SetMoveInput(Vector2.zero);
+            SetMoveInput(direction.normalized);
             return;
         }
 
-        SetMoveInput(direction.normalized);
+        transform.position = targetPosition;
+        SetMoveInput(Vector2.zero);
+
+        if (isCouncilDestination)
+            councilState = CandidateCouncilState.ReachedPosition;
+        else
+            councilState = CandidateCouncilState.Idle;
+    }
+
+    private void CompleteRotation()
+    {
+        if (councilFocus != null)
+            Flip(councilFocus.position - transform.position);
+
+        councilState = CandidateCouncilState.Ready;
+        SetSittingState(recruited);
+        BecameReady?.Invoke(this);
+    }
+
+    private void ClearCouncilSlot()
+    {
+        councilFocus = null;
+        isCouncilDestination = false;
+    }
+
+    private void OnMouseEnter()
+    {
+        OnHoverEnter();
+    }
+
+    private void OnMouseExit()
+    {
+        OnHoverExit();
+    }
+
+    private void OnMouseDown()
+    {
+        if (!managementEnabled)
+        {
+            Interact();
+            return;
+        }
+
+        isPointerHeld = true;
+        startedWeaponDrag = false;
+        pointerDownTime = Time.unscaledTime;
+    }
+
+    private void OnMouseUp()
+    {
+        if (!isPointerHeld)
+            return;
+
+        isPointerHeld = false;
+
+        if (!startedWeaponDrag)
+            TeamChangeRequested?.Invoke(this);
+    }
+
+    private void UpdateWeaponVisual()
+    {
+        if (equippedWeaponRenderer == null)
+            return;
+
+        equippedWeaponRenderer.sprite = equippedWeapon != null ? equippedWeapon.Icon : null;
+        equippedWeaponRenderer.enabled = equippedWeaponRenderer.sprite != null;
+        UpdateWeaponFacing();
+    }
+
+    private void UpdateWeaponFacing()
+    {
+        if (equippedWeaponRenderer != null && spriteRenderer != null)
+            equippedWeaponRenderer.flipX = spriteRenderer.flipX;
     }
 }

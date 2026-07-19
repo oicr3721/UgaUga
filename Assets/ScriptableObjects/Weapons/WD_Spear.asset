@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fdb6bff88054c6c83ad0bfcee0a5b4d, type: 3}
   m_Name: WD_Spear
   m_EditorClassIdentifier: 
-  weaponId: ranged_default
-  displayName: Ranged
-  icon: {fileID: 0}
+  weaponId: weapon_spear
+  displayName: Spear
+  icon: {fileID: -592426617, guid: 8cf81a550ac28ba4b9db294a39b7417d, type: 3}
   rarity: 0
   weaponPrefab: {fileID: 200002, guid: ff4013e9e2fb46a5a17e20f646383105, type: 3}
   baseDamage: 2

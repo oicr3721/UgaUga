@@ -37,8 +37,8 @@ public class Teammate : Character
         if (data.AnimatorController != null)
             animator.runtimeAnimatorController = data.AnimatorController;
 
-        WeaponData weapon = equippedWeapon != null ? equippedWeapon : data.DefaultWeapon;
-        EquipWeapon(weapon);
+        if (equippedWeapon != null)
+            EquipWeapon(equippedWeapon);
     }
 
     public bool EquipWeapon(WeaponData weaponData)

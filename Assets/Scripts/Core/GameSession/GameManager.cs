@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     [Header("Runtime State")]
     [SerializeField] private ObservableValue playerMeat;
     [SerializeField] private List<TeammateData> teammateDatas = new();
+    [SerializeField] private List<WeaponStack> initialWeapons = new();
 
     [Header("Team")]
     [Min(1)]
@@ -22,7 +23,7 @@ public class GameManager : MonoBehaviour
         }
 
         Instance = this;
-        GameSession.Initialize(playerMeat, teammateDatas, maxTeammateCount);
+        GameSession.Initialize(playerMeat, teammateDatas, initialWeapons, maxTeammateCount);
         DontDestroyOnLoad(this);
     }
 }

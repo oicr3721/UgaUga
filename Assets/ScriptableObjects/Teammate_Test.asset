@@ -17,9 +17,9 @@ MonoBehaviour:
   description: uga uga
   portrait: {fileID: 1011778858, guid: f20dd9ea08001244794eb9e18fa9f67a, type: 3}
   animatorController: {fileID: 9100000, guid: d4436f3854c08a04b9982e7ee2badc51, type: 2}
-  prefab: {fileID: 1275647397350304966, guid: 5e11022026c15154189fd9dac0514307, type: 3}
+  prefab: {fileID: 3937841274884827221, guid: 6bf18616b2a950c418d953f6a1ec45ed, type: 3}
   meatCost: 2
-  shareRate: 1
+  shareRate: 0.3
   moveSpeed: 1.4
   strength: 0
   defaultWeapon: {fileID: 11400000, guid: c22d9956b56045e296a315e3b9e32f24, type: 2}

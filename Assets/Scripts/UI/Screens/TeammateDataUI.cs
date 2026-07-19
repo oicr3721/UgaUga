@@ -1,24 +1,29 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TeammateDataUI : MonoBehaviour
 {
-    [Header("Teammate")]
-    [SerializeField] private TeammateCandidate targetTeammate;
-
     [Header("UI")]
     [SerializeField] private Canvas canvas;
-    [SerializeField] private string meatEmojiName;
-    [SerializeField] private TMP_Text meatCountTMP;
-    [SerializeField] private TMP_Text attackTypeTMP;
-    [SerializeField] private TMP_Text attackDamageTMP;
-    [SerializeField] private TMP_Text speedTMP;
+    [SerializeField] private TMP_Text shareLabel;
+    [SerializeField] private Image shareFill;
+    [SerializeField] private TMP_Text strengthLabel;
+    [SerializeField] private Image strengthFill;
+    [SerializeField] private TMP_Text speedLabel;
+    [SerializeField] private Image speedFill;
+
+    [Header("Scale")]
+    [Min(0.1f)]
+    [SerializeField] private float maximumStrength = 5f;
+    [Min(0.1f)]
+    [SerializeField] private float maximumSpeed = 5f;
 
     [Header("Hover")]
     [SerializeField] private int hoverSortingOrder = 100;
-    [SerializeField] private float hoverScale = 1.15f;
-    [SerializeField] private float hoverDuration = 0.15f;
+    [SerializeField] private float hoverScale = 1.05f;
+    [SerializeField] private float hoverDuration = 0.12f;
 
     private int defaultSortingOrder;
     private Tween scaleTween;
@@ -26,6 +31,12 @@ public class TeammateDataUI : MonoBehaviour
     private void Awake()
     {
         defaultSortingOrder = canvas.sortingOrder;
+        SetVisible(false);
+    }
+
+    private void OnDestroy()
+    {
+        scaleTween?.Kill();
     }
 
     public void UpdateData(TeammateData data, WeaponData equippedWeapon = null)
@@ -33,16 +44,12 @@ public class TeammateDataUI : MonoBehaviour
         if (data == null)
             return;
 
-        string meatText = string.Empty;
-        for (int i = 0; i < data.MeatCost; i++)
-            meatText += meatEmojiName;
-
-        meatCountTMP.text = meatText;
-
-        WeaponData weapon = equippedWeapon != null ? equippedWeapon : data.DefaultWeapon;
-        attackTypeTMP.text = "Type:" + (weapon != null ? weapon.DisplayName : "None");
-        attackDamageTMP.text = "Power:" + (weapon != null ? weapon.BaseDamage : 0f);
-        speedTMP.text = "Speed:" + data.MoveSpeed;
+        shareLabel.text = $"지분 {data.ShareRate:P0}";
+        strengthLabel.text = "힘";
+        speedLabel.text = "속도";
+        shareFill.fillAmount = Mathf.Clamp01(data.ShareRate);
+        strengthFill.fillAmount = Mathf.Clamp01(data.Strength / maximumStrength);
+        speedFill.fillAmount = Mathf.Clamp01(data.MoveSpeed / maximumSpeed);
     }
 
     public void HoverEnter()
@@ -50,6 +57,11 @@ public class TeammateDataUI : MonoBehaviour
         canvas.sortingOrder = hoverSortingOrder;
         scaleTween?.Kill();
         scaleTween = transform.DOScale(hoverScale, hoverDuration);
+    }
+
+    public void SetVisible(bool visible)
+    {
+        canvas.enabled = visible;
     }
 
     public void HoverExit()

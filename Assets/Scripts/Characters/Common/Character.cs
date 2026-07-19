@@ -64,6 +64,12 @@ public class Character : MonoBehaviour
             StopMove();
     }
 
+    public virtual void SetSittingState(bool isSitting)
+    {
+        // TODO: 임시 구현. Sit 전용 Animator Parameter 추가 후 교체한다.
+        animator.SetBool(MovingParameter, isSitting);
+    }
+
     protected virtual void Tick()
     {
     }

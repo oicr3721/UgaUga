@@ -15,12 +15,9 @@ public class TeammateData : ScriptableObject
     [SerializeField] private Teammate prefab;
 
     [Header("Recruitment")]
-    [FormerlySerializedAs("meatCount")]
-    [Min(0)]
-    [SerializeField] private int meatCost;
     [Tooltip("향후 사냥 성공 시 보상 Meat 분배 비율로 사용됩니다.")]
-    [Range(1, 5)]
-    [SerializeField] private int shareRate = 1;
+    [Range(0.1f, 1f)]
+    [SerializeField] private float shareRate = 0.1f;
 
     [Header("Stats")]
     [FormerlySerializedAs("speed")]
@@ -38,8 +35,7 @@ public class TeammateData : ScriptableObject
     public Sprite Portrait => portrait;
     public RuntimeAnimatorController AnimatorController => animatorController;
     public Teammate Prefab => prefab;
-    public int MeatCost => meatCost;
-    public int ShareRate => shareRate;
+    public float ShareRate => shareRate;
     public float MoveSpeed => moveSpeed;
     public float Strength => strength;
     public WeaponData DefaultWeapon => defaultWeapon;
