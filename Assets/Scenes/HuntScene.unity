@@ -962,6 +962,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48436bed36a511345a17327170ab19b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  teammateSpawner: {fileID: 1726131319}
   teammateMarkerPrefab: {fileID: 9167982717738254588, guid: 5bf19015079802345939f4ec0a07aca1, type: 3}
   playerMarkerPrefab: {fileID: 649418264279827422, guid: 0d0c9ec55407f754dac66ed2644aee6b, type: 3}
   animalMarkerPrefab: {fileID: 7457964630415003565, guid: 32cc6512f8db60849b618ebf45b856d4, type: 3}
@@ -1426,7 +1427,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16d522825d27a6e4e918e211849e18dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animal: {fileID: 123537420}
+  teammateSpawner: {fileID: 1726131319}
+  stageEndingManager: {fileID: 112570213}
   rewardTable: {fileID: 11400000, guid: 797789065ddddbc46aaa740895bfca5e, type: 2}
+  resultTeammateCount: 3
 --- !u!4 &455528491
 Transform:
   m_ObjectHideFlags: 0
@@ -5312,8 +5317,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 420c21cd0f56ef04b8db51832e5dcc15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meleeTeammate: {fileID: 1275647397350304966, guid: 5e11022026c15154189fd9dac0514307, type: 3}
-  rangedTeammate: {fileID: 3937841274884827221, guid: 6bf18616b2a950c418d953f6a1ec45ed, type: 3}
   attackTarget: {fileID: 123537417}
   spawnSpace: 0.6
   spawnLayerOrder: 0
